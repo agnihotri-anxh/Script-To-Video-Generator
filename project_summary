@@ -1,0 +1,152 @@
+# 📚 Project Explanation: AI Video Generator
+
+This document explains how the AI Video Generator works, including the roles of its main libraries, frameworks, and modules.
+
+---
+
+## 🏗️ Project Overview
+
+The AI Video Generator transforms a user-written script into a professional video by:
+- Analyzing the script with NLP to extract keywords and scenes
+- Generating a voiceover using AI text-to-speech
+- Selecting and merging relevant local video clips
+- Composing the final video with synchronized audio
+
+The project is built with **Python**, using the **Flask** web framework for the backend API and a simple HTML/CSS/JS frontend.
+
+---
+
+## 🧩 Main Libraries & Frameworks
+
+### 1. **Flask**
+- **Purpose:** Web framework for building REST APIs and serving the web interface.
+- **Usage:** Handles HTTP requests, routing, and response formatting.
+- **Key Files:** `app.py`, `routes/api_routes.py`, `routes/web_routes.py`
+
+### 2. **spaCy**
+- **Purpose:** Natural Language Processing (NLP) library for analyzing scripts.
+- **Usage:** Extracts keywords, entities, and sentence structure from user input.
+- **Key File:** `utils/nlp_analyzer.py`
+
+### 3. **gTTS / ElevenLabs**
+- **Purpose:** Text-to-speech (TTS) for generating voiceovers.
+- **Usage:** Converts script text into an MP3 audio file.
+- **Key File:** `utils/tts_generator.py`
+- **Note:** ElevenLabs API is optional and can be configured via `.env`.
+
+### 4. **MoviePy**
+- **Purpose:** Video editing and composition.
+- **Usage:** Loads, resizes, concatenates, and overlays video/audio clips.
+- **Key File:** `services/video_processor.py`
+
+### 5. **FFmpeg**
+- **Purpose:** Backend tool for video/audio processing (used by MoviePy).
+- **Usage:** Handles encoding, decoding, and format conversion.
+- **Note:** Must be installed on the system.
+
+### 6. **Python Standard Library**
+- **Purpose:** File handling, OS operations, and utility functions.
+- **Usage:** Manages directories, file paths, and environment variables.
+- **Key Files:** `config.py`, various service and utility modules.
+
+---
+
+## 🗂️ Project Structure
+
+```
+├── app.py                   # Flask app entry point
+├── config.py                # Configuration and environment variables
+├── core/
+│   └── video_generator.py   # Orchestrates NLP, TTS, and video composition
+├── services/
+│   ├── local_video_service.py   # Finds local videos matching keywords
+│   └── video_processor.py       # Handles video editing and merging
+├── utils/
+│   ├── nlp_analyzer.py      # spaCy-based script analysis
+│   └── tts_generator.py     # Text-to-speech logic
+├── routes/
+│   ├── api_routes.py        # REST API endpoints
+│   └── web_routes.py        # Web interface routes
+└── templates/
+    └── index.html           # Web UI
+```
+
+---
+
+## 🔬 How It Works (Step-by-Step)
+
+### 1. **User Input**
+- The user enters a descriptive script in the web interface.
+
+### 2. **Script Analysis (spaCy)**
+- The script is split into scenes (using "and" or sentence boundaries).
+- Each scene is analyzed with spaCy to extract keywords (nouns, verbs, adjectives).
+- Example: `"A sunset with yellow background and a cat playing"` → `["sunset", "yellow background"]`, `["cat", "playing"]`
+
+### 3. **Voiceover Generation (gTTS/ElevenLabs)**
+- The full script is sent to the TTS engine.
+- An MP3 voiceover file is generated and saved.
+
+### 4. **Video Selection (LocalVideoService)**
+- For each scene, the system searches the local `videos` directory for clips matching the extracted keywords.
+- The best-matching video for each scene is selected.
+
+### 5. **Video Composition (MoviePy)**
+- Selected video clips are loaded and resized to a standard resolution (e.g., 1280x720).
+- Clips are concatenated in scene order.
+- The generated voiceover is set as the audio track.
+- The final video is rendered and saved as `outputs/<project_id>/final_video.mp4`.
+
+### 6. **Web Playback & Download**
+- The user can preview the generated video in the browser.
+- The video can be downloaded via a direct link.
+
+---
+
+## 🛠️ Key Modules Explained
+
+### **video_generator.py**
+- Central orchestrator for the workflow.
+- Calls NLP, TTS, and video processing services.
+- Handles project directory creation and output management.
+
+### **nlp_analyzer.py**
+- Uses spaCy to tokenize and extract keywords from each scene.
+- Returns a list of keywords for video matching.
+
+### **tts_generator.py**
+- Uses gTTS or ElevenLabs API to convert text to speech.
+- Saves the audio file for use in the final video.
+
+### **local_video_service.py**
+- Scans the local `videos` directory.
+- Matches video filenames and metadata to extracted keywords.
+
+### **video_processor.py**
+- Uses MoviePy to load, resize, and merge video clips.
+- Adds transitions if needed.
+- Sets the voiceover as the audio track.
+- Exports the final video.
+
+---
+
+## 🌐 Web Interface
+
+- Built with HTML, CSS, and JavaScript.
+- Allows users to enter scripts, preview videos, and download results.
+- Communicates with the Flask backend via AJAX (fetch API).
+
+---
+
+## 📝 Summary
+
+- **Flask** provides the API and serves the web app.
+- **spaCy** analyzes scripts for scene and keyword extraction.
+- **gTTS/ElevenLabs** generates voiceovers.
+- **MoviePy** merges video clips and overlays audio.
+- **LocalVideoService** finds matching videos from your collection.
+- **The result:** A fully automated AI-powered video generator!
+
+---
+
+**For more details, see the code comments in each
