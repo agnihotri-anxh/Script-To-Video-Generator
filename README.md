@@ -1,4 +1,4 @@
-# �� AI Video Generator
+#  AI Video Generator
 
 Transform your script into a professional video with AI-powered voiceover and stock footage.
 
