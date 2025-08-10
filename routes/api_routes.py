@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file
 from core.video_generator import VideoGenerator
+from services.video_processor import VideoProcessor
 from config import Config
 import os
 
@@ -25,6 +26,7 @@ def health_check():
 @api_bp.route('/generate-video', methods=['POST'])
 def generate_video():
     """Generate a video by merging scenes based on the script."""
+    
     try:
         data = request.get_json()
         script = data.get('script', '').strip()
@@ -159,6 +161,35 @@ def download_voiceover(project_id):
     except Exception as e:
         print(f"Error downloading voiceover: {e}")
         return jsonify({'error': str(e)}), 500
+    
+video_processor = VideoProcessor()  
+
+from services.video_processor import VideoProcessor
+video_processor = VideoProcessor()
+
+@api_bp.route('/add-caption', methods=['POST'])
+def add_caption():
+    try:
+        data = request.get_json()
+        input_video = data.get('input_video_path')
+        caption_text = data.get('caption_text', '')
+
+        if not input_video or not os.path.exists(input_video):
+            return jsonify({'error': 'Valid input_video_path required'}), 400
+
+        output_video = input_video.replace(".mp4", "_captioned.mp4")
+
+        # Call method from instance
+        video_processor.add_caption_to_video(input_video, output_video, caption_text)
+
+        return jsonify({
+            'success': True,
+            'captioned_video_url': output_video
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 
 @api_bp.route('/projects/<project_id>/status', methods=['GET'])
 def get_project_status(project_id):

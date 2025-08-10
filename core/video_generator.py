@@ -143,6 +143,8 @@ class VideoGenerator:
     def generate_multi_scene_video(self, scenes, scene_keywords, project_id):
         """Generate and merge videos for each scene, then combine into one final video with voiceover."""
         try:
+            from services.video_processor import add_caption_to_video
+
             project_dir = Config.OUTPUTS_DIR / project_id
             project_dir.mkdir(parents=True, exist_ok=True)
             video_clips = []
@@ -152,8 +154,7 @@ class VideoGenerator:
                 found_videos = self.local_video_service.search_stock_videos(keywords)
                 if not found_videos:
                     raise Exception(f"No videos found for scene {i+1}: {keywords}")
-                # Pick the first found video for simplicity
-                video_info = found_videos[0]
+                video_info = found_videos[0]  # Pick first match
                 video_clips.append(video_info['path'])
 
             # Step: Generate voiceover for the whole script
@@ -164,16 +165,20 @@ class VideoGenerator:
                 raise Exception("Failed to generate voiceover")
 
             # Merge all clips into one video with voiceover
-            output_path = project_dir / "final_video.mp4"
-            merge_success = self.video_processor.merge_clips_with_voiceover(video_clips, voiceover_path, output_path)
-
+            final_video_path = project_dir / "final_video.mp4"
+            merge_success = self.video_processor.merge_clips_with_voiceover(video_clips, voiceover_path, final_video_path)
             if not merge_success:
                 raise Exception("Failed to merge video clips")
+
+            # ✅ Add captions after merging
+            caption_text = " ".join(scenes)  # Could also be per scene with timing
+            captioned_video_path = project_dir / "final_video_with_captions.mp4"
+            add_caption_to_video(final_video_path, captioned_video_path, caption_text)
 
             return {
                 'success': True,
                 'project_id': project_id,
-                'video_path': str(output_path),
+                'video_path': str(captioned_video_path),  # Return captioned version
                 'voiceover_path': str(voiceover_path),
                 'project_dir': str(project_dir)
             }
@@ -184,3 +189,5 @@ class VideoGenerator:
                 'error': str(e),
                 'project_id': project_id
             }
+
+            

@@ -1,4 +1,5 @@
 from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips, ColorClip, TextClip
+from moviepy.editor import CompositeVideoClip
 from config import Config
 import os
 import PIL
@@ -262,3 +263,27 @@ class VideoProcessor:
         except Exception as e:
             print(f"Error merging clips with voiceover: {e}")
             return False
+    
+
+    def add_caption_to_video(input_video_path, output_video_path, caption_text, position=("center", "bottom"), font_size=40, font_color="white"):
+        """
+        Add a caption overlay to a video.
+        """
+        # Load video
+        video = VideoFileClip(str(input_video_path))
+
+        # Create text clip for the caption
+        txt_clip = (TextClip(caption_text, fontsize=font_size, color=font_color, font="Arial-Bold")
+                    .set_duration(video.duration)
+                    .set_position(position)
+                    .margin(bottom=30, opacity=0))
+
+        # Combine video + caption
+        final_clip = CompositeVideoClip([video, txt_clip])
+
+        # Export video
+        final_clip.write_videofile(str(output_video_path), codec="libx264", audio_codec="aac")
+    
+
+    
+    
